@@ -32,6 +32,43 @@ def get_weight_corr(df, cnt):
     sns.heatmap(corr, mask=mask, cmap=cmap, center=0,square=True, linewidths=.5, cbar_kws={"shrink": .5})
     plt.show()
 
+def get_average_weight_by_mechanic(df,cnt):
+    weights = df["averageweight"]
+    averageWeights = []
+    columns = []
+    for col in cnt:
+        columns.append(col[0])
+    for col in columns:
+        avg = 0
+        count = 0
+        for row in range(len(col)):
+            if(col[row]):
+                avg+=weights[row]
+                count+=1
+        avg/=count
+        averageWeights.append(avg)
+    plt.scatter(averageWeights,columns)
+    plt.show()
+
+def weightVSnumMechanics(df):
+    avgweight_by_numMechanics = {}
+    weights = df["averageweight"]
+    mechanics = df["mechanic"]
+    for i in range(len(weights)):
+        try:
+            (x,y) = avgweight_by_numMechanics[len(mechanics[i])]
+            avgweight_by_numMechanics[len(mechanics[i])] = (x+weights[i],y+1)
+        except:
+            avgweight_by_numMechanics[len(mechanics[i])] = (weights[i],1)
+    for key in avgweight_by_numMechanics.keys():
+        (x,y) = avgweight_by_numMechanics[key]
+        avgweight_by_numMechanics[key] = x/y
+    print(avgweight_by_numMechanics.keys())
+    plt.plot(avgweight_by_numMechanics.keys(),avgweight_by_numMechanics.values(),'ro')
+    plt.xticks(range(20))
+    plt.grid()
+    plt.show()
+
 
 if __name__ == '__main__':
     #preprocessing stuff
@@ -64,3 +101,5 @@ if __name__ == '__main__':
 
     #correlations stuff
     get_weight_corr(games_mechanic,mechanic_cnt)
+    get_average_weight_by_mechanic(games_mechanic,mechanic_cnt)
+    weightVSnumMechanics(games)
