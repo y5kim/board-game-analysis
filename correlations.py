@@ -29,7 +29,8 @@ def get_weight_corr(df, cnt):
     cmap = sns.diverging_palette(230, 20, as_cmap=True)
 
     # Draw the heatmap with the mask and correct aspect ratio
-    sns.heatmap(corr, mask=mask, cmap=cmap, center=0,square=True, linewidths=.5, cbar_kws={"shrink": .5})
+    sns.heatmap(corr, mask=mask, cmap=cmap, center=0,square=True, linewidths=.5, cbar_kws={"shrink": .5},annot=True,fmt = ".1f")
+    plt.title("Correlations between mechanics and weight")
     plt.show()
 
 def get_average_weight_by_mechanic(df,cnt):
@@ -48,6 +49,9 @@ def get_average_weight_by_mechanic(df,cnt):
         avg/=count
         averageWeights.append(avg)
     plt.scatter(averageWeights,columns)
+    plt.xlabel("Average Weight")
+    plt.title("Average Weight by Mechanic")
+    plt.grid()
     plt.show()
 
 def weightVSnumMechanics(df):
@@ -63,12 +67,17 @@ def weightVSnumMechanics(df):
     for key in avgweight_by_numMechanics.keys():
         (x,y) = avgweight_by_numMechanics[key]
         avgweight_by_numMechanics[key] = x/y
-    print(avgweight_by_numMechanics.keys())
     plt.plot(avgweight_by_numMechanics.keys(),avgweight_by_numMechanics.values(),'ro')
     plt.xticks(range(20))
+    plt.xlabel("Number of Mechanics in a Given Game")
+    plt.ylabel("Average weight across all games with this many mechanics")
+    plt.title("Average Weight by number of mechanics")
     plt.grid()
     plt.show()
 
+def popularity_metric_correlations(df):
+    sns.pairplot(df,y_vars = ["avgrating","bayesavgrating"],x_vars = ["numratings","numowned","numwants","numcomments","rank"])
+    plt.show()
 
 if __name__ == '__main__':
     #preprocessing stuff
@@ -103,3 +112,4 @@ if __name__ == '__main__':
     get_weight_corr(games_mechanic,mechanic_cnt)
     get_average_weight_by_mechanic(games_mechanic,mechanic_cnt)
     weightVSnumMechanics(games)
+    popularity_metric_correlations(games)
