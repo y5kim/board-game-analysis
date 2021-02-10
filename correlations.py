@@ -67,7 +67,7 @@ def weightVSnumMechanics(df):
     for key in avgweight_by_numMechanics.keys():
         (x,y) = avgweight_by_numMechanics[key]
         avgweight_by_numMechanics[key] = x/y
-    plt.plot(avgweight_by_numMechanics.keys(),avgweight_by_numMechanics.values(),'ro')
+    plt.plot(list(avgweight_by_numMechanics.keys()),list(avgweight_by_numMechanics.values()),'ro')
     plt.xticks(range(20))
     plt.xlabel("Number of Mechanics in a Given Game")
     plt.ylabel("Average weight across all games with this many mechanics")
