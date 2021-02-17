@@ -3,3 +3,5 @@
 Data/
 debug
 __pycache__/
+*.pyc
+
