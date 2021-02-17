@@ -50,7 +50,9 @@ def add_encoded_column(df, col, threshold=None, filt_items=None):
     return item_encodings
 
 def add_item_counts_column(df, col):
-    '''Adds a counter column to dataframe 'df' for a given list column 'col''''
+    '''
+    Adds a counter column to dataframe 'df' for a given list column 'col'
+    '''
     assert isinstance(df, pd.DataFrame)
     assert col in list(df)
 
