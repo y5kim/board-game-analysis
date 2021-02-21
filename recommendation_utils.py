@@ -171,12 +171,19 @@ def calculate_scores(idx, similarity_matrices, idx_weights=None, similarity_weig
 
 def recommend_games(df, games, similarity_matrices, game_weights=None, similarity_weights=None, num_games=5, exclude=None):
     '''
-    Returns a list of 'num_games' game names that are the nearest neighbours to the list of 'games'
+    Returns a list of 'num_games' game names that are the nearest neighbours to the list of 'games' 
+    excluding any items in 'exclude'
 
     Args:
         df: pandas dataframe containing board game data
         games: list of game names 
         game_weights: weights specifying preference of corresponding game; can be negative values
+        similarity_matrices: list of numpy arrays; each numpy array maps the similarity score between
+                             all games with respect to a specific parameter
+        similarity_weights: optional list of floats of the same size as 'similarity_matrices; 
+                            each entry specifies the weightage given to the corresponding similarity matrix
+        num_games: number of recommended games to return
+        exclude: list of items to exclude from recommendations
     '''
     assert isinstance(games, (list, tuple))
     assert isinstance(exclude, (list,tuple)) or exclude is None
