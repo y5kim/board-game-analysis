@@ -16,7 +16,7 @@ def get_reversed_encodings(encodings):
 
 def get_encoded_vec(items, encodings):
     '''returns a multi-hot vector encoding corresponding to tokens in "items"'''
-    assert isinstance(items, list)
+    assert isinstance(items, (list, tuple))
     assert isinstance(encodings, dict)
 
     rev_encodings = get_reversed_encodings(encodings)
@@ -118,40 +118,6 @@ def get_idx_values(df, indices, col='name'):
     return list(df.iloc[indices, df.columns.get_loc(col)])
 
 
-
-def find_nearest_idx(idx, similarity_matrices, similarity_weights=None, num_games=5):
-    '''
-    Returns a list of indices corresponding to the 'num_games' nearest games compared to
-    the game specified by 'idx'
-
-    Args:
-        idx: int representing the input game
-        similarity_matrices: list of numpy arrays; each numpy array maps the similarity score between
-                             all games with respect to a specific parameter
-        similarity_weights: optional list of floats of the same size as 'similarity_matrices; 
-                            each entry specifies the weightage given to the corresponding similarity matrix
-        num_games: int that specifies the number of nearest neighbours to return
-    '''
-    assert isinstance(idx, int)
-    assert idx >= 0
-    assert isinstance(similarity_matrices, list)
-    assert similarity_weights is None or len(similarity_matrices) == len(similarity_weights)
-    assert isinstance(num_games, int)
-
-
-    similarity_weights = [1/len(similarity_matrices) for _ in range(len(similarity_matrices))] if similarity_weights is None else similarity_weights
-    similarity_weights = np.expand_dims(np.array(similarity_weights), axis=1)
-
-    game_similarity_vectors = np.array([mat[idx,:] for mat in similarity_matrices])
-
-    weighted_similarities = np.sum(similarity_weights*game_similarity_vectors, axis=0)
-
-    scores = sorted(list(enumerate(weighted_similarities)), key = lambda i: i[1], reverse=True)
-
-    #exclude the input game itself
-    return [i[0] for i in scores[1:num_games+1]]
-
-
 def get_similarity_matrices(df, similarity_cols, similarity_types):
     '''
     Returns a list of similarity matrices corresponding to the columns specified in 'similarity_cols'
@@ -163,22 +129,90 @@ def get_similarity_matrices(df, similarity_cols, similarity_types):
                           same size as 'similarity_cols'
     '''
     assert isinstance(df, pd.DataFrame)
-    assert isinstance(similarity_cols, list)
-    assert isinstance(similarity_types, list)
+    assert isinstance(similarity_cols, (list, tuple))
+    assert isinstance(similarity_types, (list, tuple))
     assert len(similarity_cols) == len(similarity_types)
 
     return [generate_similarity_matrix(df, col, col_type) for col, col_type in zip(similarity_cols, similarity_types)]
-    
 
-def recommend_games(df, name, similarity_matrices, similarity_weights=None, num_games=5):
+
+
+def calculate_scores(idx, similarity_matrices, idx_weights=None, similarity_weights=None):
     '''
-    Returns a list of 'num_games' game names that are the nearest neighbours to the game specified by 'name'
+    Returns a tuple of (idx, score) corresponding to each entry in 'similarity_matrices'
+
+    Args:
+        idx: list of indices representing the input games
+        idx_weights: weights determining the importance of each game
+        similarity_matrices: list of numpy arrays; each numpy array maps the similarity score between
+                             all games with respect to a specific parameter
+        similarity_weights: optional list of floats of the same size as 'similarity_matrices; 
+                            each entry specifies the weightage given to the corresponding similarity matrix
     '''
-    assert isinstance(name, str)
-    game_idx = get_row_idx(df, name, col='name')
-    assert game_idx >= 0, "Game not found"
+    assert isinstance(idx, (list, tuple))
+    assert all(i >= 0 for i in idx)
+    assert isinstance(similarity_matrices, (list, tuple))
+    assert similarity_weights is None or len(similarity_matrices) == len(similarity_weights)
+    assert idx_weights is None or len(idx_weights) == len(idx)
 
-    nearest_games_idx = find_nearest_idx(game_idx, similarity_matrices, similarity_weights, num_games)
+    similarity_weights = [1/len(similarity_matrices) for _ in range(len(similarity_matrices))] if similarity_weights is None else similarity_weights
+    similarity_weights = np.expand_dims(np.array(similarity_weights), axis=1)
 
-    return get_idx_values(df, nearest_games_idx, col='name')
-    
+    idx_weights = [1/len(idx) for _ in idx] if idx_weights is None else idx_weights
+    idx_weights = np.expand_dims(np.array(idx_weights), axis=1)
+
+    game_similarity_vectors = np.array([np.sum(mat[idx,:] * idx_weights, axis=0) for mat in similarity_matrices])
+
+    weighted_similarities = np.sum(similarity_weights*game_similarity_vectors, axis=0)
+
+    scores = sorted(list(enumerate(weighted_similarities)), key = lambda i: i[1], reverse=True)
+
+    return scores
+
+def recommend_games(df, games, similarity_matrices, game_weights=None, similarity_weights=None, num_games=5, exclude=None):
+    '''
+    Returns a list of 'num_games' game names that are the nearest neighbours to the list of 'games'
+
+    Args:
+        df: pandas dataframe containing board game data
+        games: list of game names 
+        game_weights: weights specifying preference of corresponding game; can be negative values
+    '''
+    assert isinstance(games, (list, tuple))
+    assert isinstance(exclude, (list,tuple)) or exclude is None
+    game_idx = [get_row_idx(df, game, col='name') for game in games]
+
+    if game_weights is not None:
+        try:
+            #remove any game and associated weight if game was not found
+            game_idx, game_weights = zip(*[(idx, weight) for idx, weight in zip(game_idx, game_weights) if idx>=0])
+        except ValueError: #thrown if none of the games are found
+            game_idx, game_weights = [],[]
+    else:
+        game_idx = [idx for idx in game_idx if idx >=0]
+
+    assert len(game_idx) > 0, "Games not found"
+    exclude_idx = [get_row_idx(df, game, col='name') for game in exclude] if exclude is not None else []
+
+    game_scores = calculate_scores(game_idx, similarity_matrices, game_weights, similarity_weights)
+
+    nearest_games = [score[0] for score in game_scores if score[0] not in list(game_idx)+list(exclude_idx)]
+
+    return get_idx_values(df, nearest_games[:num_games], col='name')
+
+
+def user_game_ratings(df, user):
+    '''
+    Returns a list of all game ratings for a given 'user'; returns empty list if user is not found
+    '''
+    assert isinstance(df, pd.DataFrame)
+
+    return df[df['user'] == user][['name', 'rating']].values.tolist()
+
+def rating_to_weights(ratings, mean=7.0):
+    '''
+    Converts rating values to a game-importance weight
+    '''
+    assert isinstance(ratings, (list, tuple))
+
+    return [rating - mean for rating in ratings]
