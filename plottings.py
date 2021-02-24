@@ -58,31 +58,6 @@ def read_correlation(corr_dataframe):
     return corr_dataframe[col1][col2]
 
 
-def unpack_words(df_cols):
-    '''
-    flatten the list
-
-    '''
-    import itertools as it
-
-    return list(it.chain(*df_cols))
-
-def word_cloud(words):
-    '''
-    generate word clouds for a list of words
-    '''
-
-    from wordcloud import WordCloud, STOPWORDS
-
-    wordcloud = WordCloud(width = 3000, height = 2000, random_state=1, background_color='salmon', colormap='Pastel1', collocations=False, stopwords = STOPWORDS).generate(words)
-
-    plt.figure(figsize=(20, 15))
-    # Display image
-    plt.imshow(wordcloud) 
-    # No axis details
-    plt.axis("off")
-
-
     
 
 
