@@ -1,4 +1,5 @@
 from tkinter import * #gui module
+from tkinter import ttk
 from PIL import ImageTk,Image
 
 
@@ -95,9 +96,7 @@ similarity_types = ['text'
 similarity_weights = [0.1, 0.25, 0.25, 0.1, 0.1, 0.2]
 
 similarity_matrices = recommender.get_similarity_matrices(recommendation_df, similarity_cols, similarity_types)
-
-
-
+# similarity_matrices = [[]]
 
 ###################################################
 
@@ -152,14 +151,15 @@ def search_switcher(search_type):
 
 def search_handeler():
     if mode == 0:
-        search_arg = auto.get()
+        name = auto.get()
         if var1.get() == 0:
-            arg_list.append(search_arg)
-            search_arg = w.get()
-            game_weights.append(float(search_arg))
+            arg_list.append(name)
+            weight = w.get()
+            game_weights.append(float(weight))
+            game_table.insert('', 'end', values=(name, weight))
         else:
-            excluded.append(search_arg)
-
+            excluded.append(name)
+            exclude_table.insert('', 'end', values=(name,))
 
         #call recommender and put in recs list
         print(arg_list)
@@ -194,9 +194,12 @@ def search_handeler():
     return
 
 def clear_lists():
+    global arg_list, game_weights, excluded
     arg_list = []
     game_weights = []
     excluded = []
+    game_table.delete(*game_table.get_children())
+    exclude_table.delete(*exclude_table.get_children())
 
 def match_string():
     hits = []
@@ -283,6 +286,14 @@ games = [game0, game1, game2, game3, game4, game5, game6, game7, game8]
 
 exitButton =Button(root, text = "Close Recommender", command = root.quit)
 
+game_table_cols = ('Played Games', 'Weight')
+game_table = ttk.Treeview(root, columns=game_table_cols, show='headings')
+for col in game_table_cols:
+    game_table.heading(col, text=col)
+
+exclude_table = ttk.Treeview(root, columns=('Games',), show='headings')
+exclude_table.heading('Games', text='Games to Exclude')
+
 #add elements to screen
 search_type_drop.grid(row = 0, column = 0)
 
@@ -306,15 +317,18 @@ clear.grid(row = 2, column = 1)
 
 exitButton.grid(row=2,column = 2 )
 
-button0.grid(row =3, column = 0)
-button1.grid(row =3, column = 1)
-button2.grid(row =3, column = 2)
-button3.grid(row =4, column = 0)
-button4.grid(row =4, column = 1)
-button5.grid(row =4, column = 2)
-button6.grid(row =5, column = 0)
-button7.grid(row =5, column = 1)
-button8.grid(row =5, column = 2)
+game_table.grid(row=3, column=1, columnspan=2, pady=10)
+exclude_table.grid(row=3, column=0, columnspan=1, pady=10)
+
+button0.grid(row =4, column = 0)
+button1.grid(row =4, column = 1)
+button2.grid(row =4, column = 2)
+button3.grid(row =5, column = 0)
+button4.grid(row =5, column = 1)
+button5.grid(row =5, column = 2)
+button6.grid(row =6, column = 0)
+button7.grid(row =6, column = 1)
+button8.grid(row =6, column = 2)
 
 
 
