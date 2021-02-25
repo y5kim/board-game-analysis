@@ -139,17 +139,23 @@ def openLink(gameID):
     return
 
 def search_switcher(search_type):
+    global mode
     if search_type == 'similar':
         other.grid_forget()
-        autofill.grid(row = 0, column = 1)
+        autofill.grid(row = 0, column = 2)
+        weight.grid(row = 1, column =2)
+
         mode = 0
     else:
+        print('switching mode')
         autofill.grid_forget()
-        other.grid(row = 0, column = 1)
+        weight.grid_forget()
+        other.grid(row = 0, column = 2)
         mode = 1
     return
 
 def search_handeler():
+    print(mode)
     if mode == 0:
         name = auto.get()
         if var1.get() == 0:
@@ -189,8 +195,8 @@ def search_handeler():
                 button8['image'] = games[i].my_img
 
 
-    else:
-        pass
+    elif (mode == 1):
+        print(o.get())
     return
 
 def clear_lists():
@@ -262,7 +268,7 @@ exclude = Checkbutton(root, text="Exclude", variable=var1)
 weight_label = Label(root, text ="Weight")
 
 w = StringVar()
-weight = other = Entry(root, textvariable = w)
+weight = Entry(root, textvariable = w)
 
 game0 = Game(' ')
 button0 = Button(root, image = game0.my_img,command = lambda: openLink(game0.ID) ,height = 180, width = 200)
