@@ -27,6 +27,7 @@ from sklearn.metrics import pairwise_distances
 from word_cloud import get_stop_words
 
 import recommendation_utils as recommender
+import filter as ft
 
 #preprocessing stuff
 # Read data
@@ -62,6 +63,15 @@ thumbs =games['thumbnail'].values
 
 for list_col in ["category", "mechanic", "designer", "publisher"]:
     games[list_col] = games[list_col].apply(lambda x: ast.literal_eval(x) if not(pd.isna(x)) else [])
+
+
+list_colnames = ["category", "mechanic", "designer", "publisher"]
+#games = pre.parse_list_columns(games, list_colnames)
+cat_list = list(ft.available_choices(games,"category"))
+mech_list = list(ft.available_choices(games, "mechanic"))
+des_list = list(ft.available_choices(games, "designer"))
+pub_list = list(ft.available_choices(games, "publisher"))
+
 
 # 5. Keep top 10000 games and create encoded columns
 
@@ -124,13 +134,19 @@ class Game:
             self.my_img = ImageTk.PhotoImage(Image.open(my_img_file))
 
     def set(self,name):
-        self.myName = name
-        self.ID = ids[np.where(names == self.myName)][0]
-        self.thumbnail = thumbs[np.where(names == self.myName)][0]
-        my_img_file = wget.download(self.thumbnail)
-        print(' ')
-        image_files.append(my_img_file)
-        self.my_img = ImageTk.PhotoImage(Image.open(my_img_file))
+        if name == ' ':
+            self.myName = ''
+            self.ID = 0
+            self.thumbnail = ''
+            self.my_img = ImageTk.PhotoImage(Image.open(default_img))
+        else:
+            self.myName = name
+            self.ID = ids[np.where(names == self.myName)][0]
+            self.thumbnail = thumbs[np.where(names == self.myName)][0]
+            my_img_file = wget.download(self.thumbnail)
+            print(' ')
+            image_files.append(my_img_file)
+            self.my_img = ImageTk.PhotoImage(Image.open(my_img_file))
 
 ###################################################
 def openLink(gameID):
@@ -141,21 +157,34 @@ def openLink(gameID):
 def search_switcher(search_type):
     global mode
     if search_type == 'similar':
-        other.grid_forget()
-        autofill.grid(row = 0, column = 2)
-        weight.grid(row = 1, column =2)
-
+        filter_frame.grid_forget()
+        user_frame.grid_forget()
+        similar_frame.grid(row =0, column =1, columnspan = 2, rowspan = 2)
+        exclude.grid(row = 1, column = 0)
+        game_table.grid(row=3, column=1, columnspan=2, pady=10)
+        exclude_table.grid(row=3, column=0, columnspan=1, pady=10)
         mode = 0
-    else:
-        print('switching mode')
-        autofill.grid_forget()
-        weight.grid_forget()
-        other.grid(row = 0, column = 2)
+    elif search_type == 'filter':
+        exclude.grid_forget()
+        exclude_table.grid_forget()
+        game_table.grid_forget()
+        similar_frame.grid_forget()
+        user_frame.grid_forget()
+        filter_frame.grid(row =0, column =1, columnspan = 2, rowspan = 2)
         mode = 1
+    else :
+        exclude.grid_forget()
+        exclude_table.grid_forget()
+        game_table.grid_forget()
+        similar_frame.grid_forget()
+        filter_frame.grid_forget()
+        user_frame.grid(row =0, column =1, columnspan = 2, rowspan = 2)
+        mode =2
     return
 
 def search_handeler():
     print(mode)
+    global games
     if mode == 0:
         name = auto.get()
         if var1.get() == 0:
@@ -173,29 +202,88 @@ def search_handeler():
         print(excluded)
         recs = recommender.recommend_games(recommendation_df, arg_list, similarity_matrices,game_weights=game_weights, similarity_weights=similarity_weights, num_games=15, exclude=excluded)
         for i in range(9):
-            games[i].set(recs[i])
+            game_objs[i].set(recs[i])
 
             if i==0:
-                button0['image'] = games[i].my_img
+                button0['image'] = game_objs[i].my_img
             elif i==1:
-                button1['image'] = games[i].my_img
+                button1['image'] = game_objs[i].my_img
             elif i==2:
-                button2['image'] = games[i].my_img
+                button2['image'] = game_objs[i].my_img
             elif i==3:
-                button3['image'] = games[i].my_img
+                button3['image'] = game_objs[i].my_img
             elif i==4:
-                button4['image'] = games[i].my_img
+                button4['image'] = game_objs[i].my_img
             elif i==5:
-                button5['image'] = games[i].my_img
+                button5['image'] = game_objs[i].my_img
             elif i==6:
-                button6['image'] = games[i].my_img
+                button6['image'] = game_objs[i].my_img
             elif i==7:
-                button7['image'] = games[i].my_img
+                button7['image'] = game_objs[i].my_img
             elif i==8:
-                button8['image'] = games[i].my_img
+                button8['image'] = game_objs[i].my_img
 
 
     elif (mode == 1):
+        print(cat.get())
+        print(mech.get())
+        print(des.get())
+        print(pub.get())
+        ordered_games = games.copy(deep = True)
+        if len(cat.get())>0:
+            ordered_games = ft.rating_filter(ordered_games, 'category', cat.get())
+        if len(mech.get())>0:
+            ordered_games = ft.rating_filter(ordered_games, 'mechanic', mech.get())
+        if len(des.get())>0:
+            ordered_games = ft.rating_filter(ordered_games, 'designer', des.get())
+        if len(pub.get())>0:
+            ordered_games = ft.rating_filter(ordered_games, 'publisher', pub.get())
+        out = list(ft.select_next_n(ordered_games,9))[0]['name']
+        print(out)
+        for i in range(len(out)):
+            game_objs[i].set(out[i])
+
+            if i==0:
+                button0['image'] = game_objs[i].my_img
+            elif i==1:
+                button1['image'] = game_objs[i].my_img
+            elif i==2:
+                button2['image'] = game_objs[i].my_img
+            elif i==3:
+                button3['image'] = game_objs[i].my_img
+            elif i==4:
+                button4['image'] = game_objs[i].my_img
+            elif i==5:
+                button5['image'] = game_objs[i].my_img
+            elif i==6:
+                button6['image'] = game_objs[i].my_img
+            elif i==7:
+                button7['image'] = game_objs[i].my_img
+            elif i==8:
+                button8['image'] = game_objs[i].my_img
+        default = ImageTk.PhotoImage(Image.open(default_img))
+        for i in range(len(out),9):
+            game_objs[i].set(' ')
+            if i==0:
+                button0['image'] = default
+            elif i==1:
+                button1['image'] = default
+            elif i==2:
+                button2['image'] = default
+            elif i==3:
+                button3['image'] = default
+            elif i==4:
+                button4['image'] = default
+            elif i==5:
+                button5['image'] = default
+            elif i==6:
+                button6['image'] = default
+            elif i==7:
+                button7['image'] = default
+            elif i==8:
+                button8['image'] = default
+
+    else:
         print(o.get())
     return
 
@@ -245,31 +333,54 @@ root.title("Board Game Recomender")
 #root.iconbitmap(" path of .ico file")
 
 #create elements
-search_type_options = ['similar', 'category', 'mechanic','user']#add as recommendation systems are made
+search_type_options = ['similar', 'filter', 'user']#add as recommendation systems are made
 chosen_type = StringVar()
 chosen_type.set(search_type_options[0])
 search_type_drop = OptionMenu(root,chosen_type,*search_type_options,command = search_switcher)
 
-name_label = Label(root, text = "Game Name")
+similar_frame = Frame(root)
+filter_frame = Frame(root)
+user_frame = Frame(root)
 
+#similar display
+name_label = Label(similar_frame, text = "Game Name")
 auto = StringVar()
-autofill = Entry(root, textvariable=auto)
+autofill = Entry(similar_frame, textvariable=auto)
+weight_label = Label(similar_frame, text ="Weight")
+w = StringVar()
+weight = Entry(similar_frame, textvariable = w)
 
-o = StringVar() #change this as other functionality is implemented
-o.set("hello")
-other = Entry(root, textvariable = o)
-
-submit = Button(root, text= 'Add',command = search_handeler)
-clear = Button(root, text= 'Clear',command = clear_lists)
-
+#similar display outside main frame
 var1 = IntVar()
 exclude = Checkbutton(root, text="Exclude", variable=var1)
+game_table_cols = ('Played Games', 'Weight')
+game_table = ttk.Treeview(root, columns=game_table_cols, show='headings',height =5)
+for col in game_table_cols:
+    game_table.heading(col, text=col)
+exclude_table = ttk.Treeview(root, columns=('Games',), show='headings', height = 5)
+exclude_table.heading('Games', text='Games to Exclude')
 
-weight_label = Label(root, text ="Weight")
+#filter display
+cat = StringVar()
+category_choice = ttk.Combobox(filter_frame, textvariable = cat, values = cat_list)
+mech = StringVar()
+mechanic_choice = ttk.Combobox(filter_frame, textvariable = mech, values = mech_list)
+des = StringVar()
+designer_choice = ttk.Combobox(filter_frame, textvariable = des, values = des_list)
+pub = StringVar()
+publisher_choice = ttk.Combobox(filter_frame, textvariable = pub, values = pub_list)
 
-w = StringVar()
-weight = Entry(root, textvariable = w)
+#user display
+user_label = Label(user_frame, text = "User Name")
+o = StringVar()
+other = Entry(user_frame, textvariable = o)
 
+#controller display
+submit = Button(root, text= 'Add',command = search_handeler)
+clear = Button(root, text= 'Clear',command = clear_lists)
+exitButton =Button(root, text = "Close Recommender", command = root.quit)
+
+#output display
 game0 = Game(' ')
 button0 = Button(root, image = game0.my_img,command = lambda: openLink(game0.ID) ,height = 180, width = 200)
 game1 = Game(' ')
@@ -288,41 +399,38 @@ game7 = Game(' ')
 button7 = Button(root, image = game7.my_img,command = lambda: openLink(game7.ID) ,height = 180, width = 200)
 game8 = Game(' ')
 button8 = Button(root, image = game8.my_img,command = lambda: openLink(game8.ID) ,height = 180, width = 200)
-games = [game0, game1, game2, game3, game4, game5, game6, game7, game8]
+game_objs = [game0, game1, game2, game3, game4, game5, game6, game7, game8]
 
-exitButton =Button(root, text = "Close Recommender", command = root.quit)
 
-game_table_cols = ('Played Games', 'Weight')
-game_table = ttk.Treeview(root, columns=game_table_cols, show='headings',height =5)
-for col in game_table_cols:
-    game_table.heading(col, text=col)
-
-exclude_table = ttk.Treeview(root, columns=('Games',), show='headings', height = 5)
-exclude_table.heading('Games', text='Games to Exclude')
 
 #add elements to screen
 search_type_drop.grid(row = 0, column = 0)
 
-name_label.grid(row = 0, column = 1)
+#uncomment whichever is default first screen
+similar_frame.grid(row =0, column =1, columnspan = 2, rowspan = 2)
+#filter_frame.grid(row =0, column =1, columnspan = 2, rowspan = 2)
+#user_frame.grid(row =0, column =1, columnspan = 2, rowspan = 2)
 
-autofill.grid(row = 0, column = 2)
+name_label.grid(row = 0, column = 0)
+autofill.grid(row = 0, column = 1)
 autofill.bind('<KeyRelease>', get_typed)
 autofill.bind('<Key>', detect_pressed)
+weight_label.grid(row = 1, column =0)
+weight.grid(row = 1, column =1)
 
-exclude.grid(row = 1, column = 0)
+category_choice.grid(row = 0, column = 0)
+mechanic_choice.grid(row = 0, column = 1)
+designer_choice.grid(row = 1, column = 0)
+publisher_choice.grid(row = 1, column = 1)
 
-weight_label.grid(row = 1, column =1)
-
-weight.grid(row = 1, column =2)
-
-
+user_label.grid(row = 0, column = 1)
+other.grid(row = 0, column = 2)
 
 submit.grid(row = 2, column = 0)
-
 clear.grid(row = 2, column = 1)
-
 exitButton.grid(row=2,column = 2 )
 
+exclude.grid(row = 1, column = 0)
 game_table.grid(row=3, column=1, columnspan=2, pady=10)
 exclude_table.grid(row=3, column=0, columnspan=1, pady=10)
 
@@ -343,63 +451,3 @@ root.mainloop()
 
 for fileName in image_files: #removes all the image files created in runtime
     os.remove(fileName)
-
-
-
-
-'''
-my_img_file = wget.download("https://cf.geekdo-images.com/thumb/img/HEKrtpTC1y1amXh5cKnVvowyE5Y=/fit-in/200x150/pic1534148.jpg")
-#use the thumbnail link for this or the image is way too big
-print(' ')
-image_files = [] #list of image files for removal at end of runtime
-image_files.append(my_img_file)
-my_img = ImageTk.PhotoImage(Image.open(my_img_file))
-
-
-def aFunc():
-    print(myInputField.get())
-    return
-
-def openLink(gameID):
-    print("image pressed")
-    url ='https://boardgamegeek.com/boardgame/'+gameID
-    webbrowser.open(url)  # Go to example.com
-    return
-
-
-#create
-myLabel = Label(root, text ='Hello World!')
-myButton = Button(root, text ='I\'m a button', command = aFunc) #set command to function which is called when button is pressed
-                                                                #set color with fg or bg for forground or background
-                                                                #change size with padx and pady
-                                                                #...
-exitButton =Button(root, text = "Close", command = root.quit)
-myInputField = Entry(root)  #set size with width and height
-                            #set color with bg and fg
-                            #call object .get to get the contents of input field
-                            #call object .insert to set text in the field
-                            #...
-dispImage = Button(root, image = my_img, command = lambda: openLink('30549'), height = 200, width = 200) #change this to an actual link
-
-options =["1","2","3","4","5"]
-clicked = StringVar()
-clicked.set(options[0])
-#use .get() to extract selected value
-drop =OptionMenu(root,clicked,*options)
-drop.grid(row =3, column = 0)
-
-#add to screen
-myLabel.grid(row =0, column = 0)
-myButton.grid(row = 1, column = 1)
-myInputField.grid(row =2,column = 1)
-dispImage.grid(row = 0, column= 2)
-exitButton.grid(row=2,column = 2 )
-root.mainloop()
-
-
-
-
-
-for fileName in image_files: #removes all the image files created in runtime
-    os.remove(fileName)
-'''
