@@ -159,6 +159,7 @@ def search_switcher(search_type):
     reset_tk_vars()
     clear_game_lists()
     clear_recommended_games()
+    clear_filters()
     if search_type == 'similar':
         similar_frame.grid(row = 1, column = 0, columnspan = 3, pady=10)
         filter_frame.grid_remove()
@@ -306,6 +307,13 @@ def clear_game_lists():
     game_table.delete(*game_table.get_children())
     exclude_table.delete(*exclude_table.get_children())
 
+def clear_filters():
+    cat.set('')
+    mech.set('')
+    des.set('')
+    pub.set('')
+    
+
 def match_string(ls, tk_var):
     hits = []
     got = tk_var.get().lower()
@@ -427,6 +435,7 @@ designer_choice = ttk.Combobox(filter_frame, textvariable = des, values = des_li
 publisher_label = Label(filter_frame, text='Publisher: ')
 publisher_choice = ttk.Combobox(filter_frame, textvariable = pub, values = pub_list)
 filter_button = Button(filter_frame, text='Filter', command=filter_handler)
+clear_filter_button = Button(filter_frame, text='Clear', command=clear_filters)
 
 
 # Elements outside search frames
@@ -521,7 +530,8 @@ designer_label.grid(row = 1, column = 0)
 designer_choice.grid(row = 1, column = 1)
 publisher_label.grid(row = 1, column = 2)
 publisher_choice.grid(row = 1, column = 3)
-filter_button.grid(row = 2, column = 3)
+filter_button.grid(row = 2, column = 2)
+clear_filter_button.grid(row = 2, column = 3)
 
 
 root.mainloop()
