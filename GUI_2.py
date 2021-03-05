@@ -202,11 +202,11 @@ def user_recommend_handler():
 
     for g, w in zip(arg_list, game_weights):
         game_table.insert('', 'end', values = (g, w))
-    
+
     print(arg_list)
     print(game_weights)
     print(excluded)
-    
+
     update_recommended_games()
 
 
@@ -240,44 +240,62 @@ def update_game_buttons(names):
 
         if i==0:
             button0['image'] = game_objs[i].my_img
+            name0['text'] = game_objs[i].myName
         elif i==1:
             button1['image'] = game_objs[i].my_img
+            name1['text'] = game_objs[i].myName
         elif i==2:
             button2['image'] = game_objs[i].my_img
+            name2['text'] = game_objs[i].myName
         elif i==3:
             button3['image'] = game_objs[i].my_img
+            name3['text'] = game_objs[i].myName
         elif i==4:
             button4['image'] = game_objs[i].my_img
+            name4['text'] = game_objs[i].myName
         elif i==5:
             button5['image'] = game_objs[i].my_img
+            name5['text'] = game_objs[i].myName
         elif i==6:
             button6['image'] = game_objs[i].my_img
+            name6['text'] = game_objs[i].myName
         elif i==7:
             button7['image'] = game_objs[i].my_img
+            name7['text'] = game_objs[i].myName
         elif i==8:
             button8['image'] = game_objs[i].my_img
-    
+            name8['text'] = game_objs[i].myName
+
     default = ImageTk.PhotoImage(Image.open(default_img))
     for i in range(num_games,9):
         game_objs[i].set(' ')
         if i==0:
             button0['image'] = default
+            name0['text'] = ' '
         elif i==1:
             button1['image'] = default
+            name1['text'] = ' '
         elif i==2:
             button2['image'] = default
+            name2['text'] = ' '
         elif i==3:
             button3['image'] = default
+            name3['text'] = ' '
         elif i==4:
             button4['image'] = default
+            name4['text'] = ' '
         elif i==5:
             button5['image'] = default
+            name5['text'] = ' '
         elif i==6:
             button6['image'] = default
+            name6['text'] = ' '
         elif i==7:
             button7['image'] = default
+            name7['text'] = ' '
         elif i==8:
             button8['image'] = default
+            name8['text'] = ' '
 
 def clear_recommended_games():
     for i in range(9):
@@ -292,6 +310,15 @@ def clear_recommended_games():
     button6['image'] = default
     button7['image'] = default
     button8['image'] = default
+    name0['text'] = ' '
+    name1['text'] = ' '
+    name2['text'] = ' '
+    name3['text'] = ' '
+    name4['text'] = ' '
+    name5['text'] = ' '
+    name6['text'] = ' '
+    name7['text'] = ' '
+    name8['text'] = ' '
 
 def exclude_handeler():
     name = auto.get()
@@ -312,7 +339,7 @@ def clear_filters():
     mech.set('')
     des.set('')
     pub.set('')
-    
+
 
 def match_string(ls, tk_var):
     hits = []
@@ -450,27 +477,33 @@ exclude_table = ttk.Treeview(root, columns=('Games',), show='headings', height =
 exclude_table.heading('Games', text='Games to Exclude')
 
 game0 = Game(' ')
-button0 = Button(root, image = game0.my_img,command = lambda: openLink(game0.ID) ,height = 200, width = 200)
+button0 = Button(root, image = game0.my_img,command = lambda: openLink(game0.ID) ,height = 150, width = 200)
 game1 = Game(' ')
-button1 = Button(root, image = game1.my_img,command = lambda: openLink(game1.ID) ,height = 200, width = 200)
+button1 = Button(root, image = game1.my_img,command = lambda: openLink(game1.ID) ,height = 150, width = 200)
 game2 = Game(' ')
-button2 = Button(root, image = game2.my_img,command = lambda: openLink(game2.ID) ,height = 200, width = 200)
+button2 = Button(root, image = game2.my_img,command = lambda: openLink(game2.ID) ,height = 150, width = 200)
 game3 = Game(' ')
-button3 = Button(root, image = game3.my_img,command = lambda: openLink(game3.ID) ,height = 200, width = 200)
+button3 = Button(root, image = game3.my_img,command = lambda: openLink(game3.ID) ,height = 150, width = 200)
 game4 = Game(' ')
-button4 = Button(root, image = game4.my_img,command = lambda: openLink(game4.ID) ,height = 200, width = 200)
+button4 = Button(root, image = game4.my_img,command = lambda: openLink(game4.ID) ,height = 150, width = 200)
 game5 = Game(' ')
-button5 = Button(root, image = game5.my_img,command = lambda: openLink(game5.ID) ,height = 200, width = 200)
+button5 = Button(root, image = game5.my_img,command = lambda: openLink(game5.ID) ,height = 150, width = 200)
 game6 = Game(' ')
-button6 = Button(root, image = game6.my_img,command = lambda: openLink(game6.ID) ,height = 200, width = 200)
+button6 = Button(root, image = game6.my_img,command = lambda: openLink(game6.ID) ,height = 150, width = 200)
 game7 = Game(' ')
-button7 = Button(root, image = game7.my_img,command = lambda: openLink(game7.ID) ,height = 200, width = 200)
+button7 = Button(root, image = game7.my_img,command = lambda: openLink(game7.ID) ,height = 150, width = 200)
 game8 = Game(' ')
-button8 = Button(root, image = game8.my_img,command = lambda: openLink(game8.ID) ,height = 200, width = 200)
+button8 = Button(root, image = game8.my_img,command = lambda: openLink(game8.ID) ,height = 150, width = 200)
 game_objs = [game0, game1, game2, game3, game4, game5, game6, game7, game8]
-
-
-
+name0 = Label(root, text = "")
+name1 = Label(root, text = "")
+name2 = Label(root, text = "")
+name3 = Label(root, text = "")
+name4 = Label(root, text = "")
+name5 = Label(root, text = "")
+name6 = Label(root, text = "")
+name7 = Label(root, text = "")
+name8 = Label(root, text = "")
 
 
 #add default Root elements
@@ -486,14 +519,23 @@ game_table.grid(row=3, column=1, columnspan=2, pady=10)
 exclude_table.grid(row=3, column=0, columnspan=1, pady=10)
 
 button0.grid(row =4, column = 0)
+name0.grid(row = 5, column =0)
 button1.grid(row =4, column = 1)
+name1.grid(row = 5, column =1)
 button2.grid(row =4, column = 2)
-button3.grid(row =5, column = 0)
-button4.grid(row =5, column = 1)
-button5.grid(row =5, column = 2)
-button6.grid(row =6, column = 0)
-button7.grid(row =6, column = 1)
-button8.grid(row =6, column = 2)
+name2.grid(row = 5, column =2)
+button3.grid(row =6, column = 0)
+name3.grid(row = 7, column =0)
+button4.grid(row =6, column = 1)
+name4.grid(row = 7, column =1)
+button5.grid(row =6, column = 2)
+name5.grid(row = 7, column =2)
+button6.grid(row =8, column = 0)
+name6.grid(row = 9, column =0)
+button7.grid(row =8, column = 1)
+name7.grid(row = 9, column =1)
+button8.grid(row =8, column = 2)
+name8.grid(row = 9, column =2)
 
 #add similarity_frame elements
 name_label.grid(row = 0, column = 1)
