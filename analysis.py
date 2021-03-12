@@ -24,6 +24,12 @@ def plot_published_games_over_years(df, lb, ub, exponential_regression=True):
     ub: yearpublished upper bound
     exponential_regression: a flag whether to plot an exponential regression line
     """
+
+    assert isinstance(df, pd.DataFrame)
+    assert isinstance(lb, int) >= 1900
+    assert isinstance(ub, int) and ub <=2020
+    assert isinstance(exponential_regression, bool)
+
     # Filter the dataframe on yearpublished lower bound and upper bound
     filtered_df = df.loc[(df["yearpublished"] >= lb) & (df["yearpublished"] <= ub)]
     
@@ -61,7 +67,19 @@ def plot_min_max_attributes_over_years(df, lb, ub, min_colname, max_colname, yla
     df: dataframe 
     lb: yearpublished lower bound
     ub: yearpublished upper bound
+    min_colname: name associated with minimum values
+    max_colname: name associated with maximum values
+    ylabel_name: label on y-axis
     """
+
+    assert isinstance(df, pd.DataFrame)
+    assert isinstance(lb, int) >= 1900
+    assert isinstance(ub, int) and ub <=2020
+    assert isinstance(min_colname, str) and min_colname in games.columns()
+    assert isinstance(max_colname, str) and max_colname in games.columns()
+    assert isinstance(ylabel_name, str)
+
+
     df = games.loc[(games["yearpublished"] >= lb) & (games["yearpublished"] <= ub)]
     fig = plt.figure(figsize=(15,10))
 
@@ -85,6 +103,12 @@ def plot_ratings_over_years(df, lb, ub, year_threshold=None):
     ub: yearpublished upper bound
     year_threshold: yearpublished threshold to mark in the plot
     """
+
+    assert isinstance(df, pd.DataFrame)
+    assert isinstance(lb, int) >= 1900
+    assert isinstance(ub, int) and ub <=2020 
+    assert isinstance(year_threshold, int) and 1900 <= year_threshold <= 2020
+
     lb = 1990; ub = 2019
     filtered_df = df.loc[(df["yearpublished"] >= lb) & (df["yearpublished"] <= ub)]
     attribute_list = ["numratings", "avgrating"]
