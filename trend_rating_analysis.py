@@ -20,21 +20,22 @@ def count_plot_over_year(df, lb, ub):
     """
     plt.rcParams["axes.labelsize"] = 18
     sns.set(style="ticks")
-    f, (ax_box, ax_hist) = plt.subplots(2, sharex=True, gridspec_kw={"height_ratios": (.15, .85)},
-                                       figsize=(10,8))
+    #f, (ax_box, ax_hist) = plt.subplots(2, sharex=True, gridspec_kw={"height_ratios": (.15, .85)},
+    #                                   figsize=(10,8))
     x = df.loc[(df["yearpublished"] >= lb) & (df["yearpublished"] <= ub), "yearpublished"]
-    sns.boxplot(x, ax=ax_box)
-    p = sns.histplot(x, ax=ax_hist, discrete=True, stat="count")
+    #sns.boxplot(x, ax=ax_box)
+    #p = sns.histplot(x, ax=ax_hist, discrete=True, stat="count")
+    p = sns.histplot(x, discrete=True, stat="count")
     
-    ax_box.set(yticks=[], xlabel="")
-    ax_hist.set(xlabel='Published year', ylabel='Count')
+    #ax_box.set(yticks=[], xlabel="")
+    #ax_hist.set(xlabel='Published year', ylabel='Count')
     p.set_xlabel("Publisehd year", fontsize=15)
     p.set_ylabel("Count", fontsize=15)
     p.tick_params(labelsize=15)
 #    ax_hist.set_xlabel(xlabel="Published",fontsize=14)
     sns.despine(ax=ax_hist)
     sns.despine(ax=ax_box, left=True)
-    ax_box.set_title("The number of games published from {} to {}".format(lb, ub), fontsize=18)
+    p.set_title("The number of games published from {} to {}".format(lb, ub), fontsize=18)
     plt.show()
 
 

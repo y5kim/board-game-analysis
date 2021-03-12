@@ -26,8 +26,8 @@ def plot_published_games_over_years(df, lb, ub, exponential_regression=True):
     """
 
     assert isinstance(df, pd.DataFrame)
-    assert isinstance(lb, int) >= 1900
-    assert isinstance(ub, int) and ub <=2020
+    assert isinstance(lb, int) and ub > 0
+    assert isinstance(ub, int) and lb > 0
     assert isinstance(exponential_regression, bool)
 
     # Filter the dataframe on yearpublished lower bound and upper bound
@@ -35,6 +35,7 @@ def plot_published_games_over_years(df, lb, ub, exponential_regression=True):
     
     # Configure the pyplot setting
     fig = plt.figure(figsize=(15,10))
+    sns.set(style="ticks")
     
     # Draw a exponential regression line
     if exponential_regression:
@@ -50,7 +51,7 @@ def plot_published_games_over_years(df, lb, ub, exponential_regression=True):
         plt.plot(x+lb, np.exp(y_fit), "k--", color="brown", linewidth=2) 
 
     # Plot the histogram of published games
-    p = sns.histplot(filtered_df["yearpublished"], discrete=True, stat="count", color="orange")
+    p = sns.histplot(filtered_df["yearpublished"], discrete=True, stat="count", color="orange", edgecolor="white")
     p.set_xlabel("Year", fontsize=25, weight="bold")
     p.set_ylabel("Number of games", fontsize=25, weight="bold")
     p.tick_params(labelsize=20)
@@ -73,16 +74,17 @@ def plot_min_max_attributes_over_years(df, lb, ub, min_colname, max_colname, yla
     """
 
     assert isinstance(df, pd.DataFrame)
-    assert isinstance(lb, int) >= 1900
-    assert isinstance(ub, int) and ub <=2020
+    assert isinstance(lb, int) and lb > 0
+    assert isinstance(ub, int) and ub > 0
     assert isinstance(min_colname, str) and min_colname in df.columns
     assert isinstance(max_colname, str) and max_colname in df.columns
     assert isinstance(ylabel_name, str)
 
-
-    df = games.loc[(games["yearpublished"] >= lb) & (games["yearpublished"] <= ub)]
+    # Filter the dataframe on yearpublished lower bound and upper bound
+    df = df.loc[(df["yearpublished"] >= lb) & (df["yearpublished"] <= ub)]
     fig = plt.figure(figsize=(15,10))
 
+    # Plot the line plot of average values with shades of 95% confidence interval
     sns.lineplot(data=df, x="yearpublished", y=max_colname, label="Max", color="red", linewidth=2.5)
     p = sns.lineplot(data=df, x="yearpublished", y=min_colname, label="Min", color="blue", linewidth=2.5)
     plt.xlabel("Year", fontsize=25, weight="bold")
@@ -105,24 +107,27 @@ def plot_ratings_over_years(df, lb, ub, year_threshold=None):
     """
 
     assert isinstance(df, pd.DataFrame)
-    assert isinstance(lb, int) >= 1900
-    assert isinstance(ub, int) and ub <=2020 
+    assert isinstance(lb, int) and lb > 0
+    assert isinstance(ub, int) and ub > 0
     assert isinstance(year_threshold, int) and 1900 <= year_threshold <= 2020
 
-    lb = 1990; ub = 2019
+    # Filter the dataframe on yearpublished lower bound and upper bound
     filtered_df = df.loc[(df["yearpublished"] >= lb) & (df["yearpublished"] <= ub)]
     attribute_list = ["numratings", "avgrating"]
 
     f, (ax1, ax2) = plt.subplots(2, 1, sharex=True, sharey=False, figsize=(18,13))
+    # Plot the line plot of number of ratings
     p1 = sns.lineplot(data=filtered_df, x="yearpublished", y="numratings", ax=ax1, color="red", linewidth=2.5)
     p1.set_xlabel("Year", fontsize=25,weight="bold")
     p1.set_ylabel("Number of ratings", fontsize=25,weight="bold")
     p1.tick_params(labelsize=20) 
+    # Plot the line plot of rating scores
     p2 = sns.lineplot(data=filtered_df, x="yearpublished", y="avgrating", ax=ax2, color="blue", linewidth=2.5)
     p2.set_xlabel("Year", fontsize=25, weight="bold")
     ax2.set_ylabel("Score", fontsize=25, weight="bold")
     p2.tick_params(labelsize=23)
     p2.set_xticks(p2.get_xticks()[1:-2])
+    # Plot the vertical line on year_threshold
     if year_threshold is not None:
         ax2.axvline(year_threshold, linewidth=2, ls='--', color="black")
     
@@ -132,11 +137,24 @@ def plot_ratings_over_years(df, lb, ub, year_threshold=None):
     ax2.spines['top'].set_visible(False)
     plt.show()
 
-def compare_top_ten_items(df, colname, color_font=False, stop_words = ["Card Game"], year_threshold=2007):
+def compare_top_ten_items(df, colname, color_font, stop_words, year_threshold=2007):
     """
-    TBD
-    """
+    Plot 10 items that appear most frequently before and after year_threshold side by side
+    Return split dataframes, item counter and cmmon items occurring before and after year_threshold
     
+    df: dataframe
+    colname: name of column to be compared
+    color_font: flag of whether to highlight items not shown in common items before and after year_threshold
+    stop_words: list of words to be ignored
+    year_threshold: yearpublished threshold
+    """
+    assert isinstance(df, pd.DataFrame)
+    assert isinstance(colname, str) and colname in df.columns
+    assert isinstance(color_font, bool)
+    assert isinstance(stop_words, list) and all(isinstance(x, str) for x in stop_words)
+    assert isinstance(year_threshold, int) and year_threshold > 0
+    
+    # Split up dataframes into before and after year_threshold
     df1 = df.loc[df["yearpublished"] < year_threshold]
     df2 = df.loc[df["yearpublished"] >= year_threshold]
     
@@ -156,7 +174,7 @@ def compare_top_ten_items(df, colname, color_font=False, stop_words = ["Card Gam
     inters = [x for x in keys1 if x in keys2]
     val_lim = max(max(vals1), max(vals2))+4
 
-    # Plot the barplots
+    # Plot the barplots before & after yearthreshold side by side
     fig, (ax1, ax2) = plt.subplots(1,2, figsize=(16,4.5))
 
     ax1.barh(keys1, vals1, color="royalblue")
@@ -197,13 +215,25 @@ def compare_top_ten_items(df, colname, color_font=False, stop_words = ["Card Gam
 
 def generate_word_cloud(ds, max_words=200, width=500, height=500, background_color='white', title=""):
     """
-    Generate word clouds
+    Generate word clouds given a pandas series
+
+    ds: data series
+    max_words: maximum number of words to be displayed
+    width: width of the plot
+    height: height of the plot
+    background_color: background color of the plot
+    title: title of the plot
     """
     assert isinstance(ds, pd.Series)
+    assert isinstance(max_words, int) and max_words > 0
+    assert isinstance(width, int) and width > 0
+    assert isinstance(height, int) and height > 0
+    assert isinstance(background_color, str)
+    assert isinstance(title, str)
         
     def get_stop_words():
         """
-        Identify words to exclude from the word cloud
+        Helper function to identify words to be exclude from the word cloud
         """
         stop_words = nltk.corpus.stopwords.words('english')
         stop_words.extend([c for c in punctuation])
@@ -231,4 +261,46 @@ def generate_word_cloud(ds, max_words=200, width=500, height=500, background_col
     plt.imshow(wc)
     plt.axis('off')   
     plt.title(title, fontsize=25, fontweight="bold", pad=20)
+    plt.show()
+
+def plot_changed_frequencies(common_items, item_cnts1, item_cnts2, population_size1, population_size2, year_threshold):
+    """
+    Plot the changed occurrences of common items between before and after a given year
+    
+    common_items: list of items to be compared
+    item_cnts1: occurrences of items before year_threshold
+    item_cnts2: occurrences of items after year_threshold
+    population_size1: population size before year_threshold
+    population_size2: population size after year_threshold
+    year_threshold: publishedyear threshold
+    """
+
+    assert isinstance(common_items, list)
+    assert isinstance(item_cnts1, Counter) and isinstance(item_cnts2, Counter)    
+    assert all(isinstance(x, str) for x in common_items)
+    assert all(x in item_cnts1 and x in item_cnts2 for x in common_items)  # Check that common_items exist in item_cnts
+    assert isinstance(population_size1, int) and population_size1 > 0
+    assert isinstance(population_size2, int) and population_size2 > 0
+    assert isinstance(year_threshold, int) and 1900 <= year_threshold <= 2020
+    
+    # Get the normalized frequency of common items
+    plt.figure(figsize=(10,3))
+    d1 = [100*item_cnts1[k]/population_size1 for k in common_items]
+    d2 = [100*item_cnts2[k]/population_size2 for k in common_items]
+    
+    # Plot scatter plots of normalized frequencies before and after year_threshold
+    plt.scatter(d1, common_items, c="royalblue", s=110, label="Before {}".format(year_threshold))
+    plt.scatter(d2, common_items, c="salmon", s=110, label="After {}".format(year_threshold))
+    plt.xlabel("Share (%)", fontsize=15, weight="bold")
+    plt.xticks(fontsize=15)
+    plt.yticks(fontsize=15, weight="bold")
+
+    # Plot arrows starting from the value before year_threshold to the value after year_threshold
+    for i in np.arange(len(common_items)):
+        if abs(d2[i]-d1[i]) > 0.5:
+            if d1[i] < d2[i]:
+                plt.arrow(d1[i]+0.3, i, (d2[i]-d1[i])-0.8, 0, head_starts_at_zero=False, head_width=0.12,width=0.0015, color="black")
+            else:
+                plt.arrow(d1[i]-0.3, i, (d2[i]-d1[i])+0.8, 0, head_starts_at_zero=False, head_width=0.12,width=0.0015, color="black")
+    plt.legend(loc="lower right", fontsize=15)
     plt.show()

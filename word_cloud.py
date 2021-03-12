@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import nltk
 from string import punctuation
+import re
 
 
 def plot_word_cloud(word_counts):
@@ -34,7 +35,10 @@ def processing_columns(df_cols):
 
 def get_stop_words():
     stop_words = nltk.corpus.stopwords.words('english')
-    stop_words.extend([c for c in punctuation] + ['quot', 'rsquo', 'mdash', 'ndash','s'])
+    stop_words.extend([c for c in punctuation] + ['quot', 'rsquo', 'mdash', 'ndash','s', 'game', "", "playing"]
+        + [str(x) for x in np.arange(100)] 
+        + ["one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"]
+        )
     return set(stop_words)
 
 
@@ -44,8 +48,9 @@ def generate_word_cloud(ds, max_words=1000, width=500, height=500, background_co
 
     stop_words = get_stop_words()
     tokenized_ds = ds.dropna().apply(nltk.word_tokenize)
+    tokenized_ds = [ (re.sub(r'[^\w\s]','',x)).lower() for x in tokenized_ds]
     
-    words = [word.lower() for ls in tokenized_ds for word in ls if word not in stop_words]
+    words = [word.lower() for ls in tokenized_ds for word in ls if word.lower() not in stop_words]
     
     wc = WordCloud(background_color=background_color, max_words=max_words, width=width, height=height)
     wc.generate(' '.join(words))
@@ -54,3 +59,4 @@ def generate_word_cloud(ds, max_words=1000, width=500, height=500, background_co
     fig=plt.gcf()
     fig.set_size_inches(15,10)
     plt.show()
+
