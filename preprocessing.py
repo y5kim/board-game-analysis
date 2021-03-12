@@ -7,6 +7,8 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
+
+# TODO: change the function name to identify_sparse_columns
 def keep_columns_with_few_na(df, na_ratio_threshold=0.2):
     """
     Return columns of dataframe whose ratio of NA values <= threshold
@@ -15,6 +17,7 @@ def keep_columns_with_few_na(df, na_ratio_threshold=0.2):
     key_columns = [colname for colname in df.columns if df[colname].isna().sum() <= na_ratio_threshold*n_rows]
     return(key_columns)
 
+# TODO: parse_columns_to_lists
 def parse_list_columns(df, colnames):
     """
     Convert columns whose values are of string of list format to lists
@@ -35,6 +38,13 @@ def create_df_with_binary_columns(df, colname, n_binary_cols):
         new_df[col] = new_df[colname].apply(lambda x: col in x)
     return(new_df, cnt.most_common(n_binary_cols))
 
+def clean_string_format_columns(df, colnames):
+    """
+    Clean up string-formated columns by removing "
+    """
+    for colname in colnames:
+        df[colname] = df[colname].apply(lambda x: x[1:-1] if isinstance(x, str) else "")
+    return(df)
 
 
 if __name__ == '__main__':
