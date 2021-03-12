@@ -75,8 +75,8 @@ def plot_min_max_attributes_over_years(df, lb, ub, min_colname, max_colname, yla
     assert isinstance(df, pd.DataFrame)
     assert isinstance(lb, int) >= 1900
     assert isinstance(ub, int) and ub <=2020
-    assert isinstance(min_colname, str) and min_colname in games.columns
-    assert isinstance(max_colname, str) and max_colname in games.columns
+    assert isinstance(min_colname, str) and min_colname in df.columns
+    assert isinstance(max_colname, str) and max_colname in df.columns
     assert isinstance(ylabel_name, str)
 
 

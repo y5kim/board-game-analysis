@@ -12,7 +12,14 @@ import matplotlib.pyplot as plt
 def keep_columns_with_few_na(df, na_ratio_threshold=0.2):
     """
     Return columns of dataframe whose ratio of NA values <= threshold
+
+    df: games Dataframe
+    na_ratio_threshold: threshold of null values
     """
+
+    assert isinstance(df, pd.DataFrame)
+    assert isinstance(na_ratio_threshold, float) and 0<= na_ratio_threshold <= 1
+
     n_rows, n_cols = df.shape
     key_columns = [colname for colname in df.columns if df[colname].isna().sum() <= na_ratio_threshold*n_rows]
     return(key_columns)
@@ -21,7 +28,14 @@ def keep_columns_with_few_na(df, na_ratio_threshold=0.2):
 def parse_list_columns(df, colnames):
     """
     Convert columns whose values are of string of list format to lists
+
+    df: games Dataframe
+    colnames: list of column names to be parsed
     """
+
+    assert isinstance(df, pd.DataFrame)
+    assert isinstance(colnames, list) and all(isinstance(i, str) and i in df.columns for i in colnames)
+
     for list_col in colnames:
         df[list_col] = df[list_col].apply(lambda x: ast.literal_eval(x) if not(pd.isna(x)) else [])
     return(df)
@@ -29,7 +43,17 @@ def parse_list_columns(df, colnames):
 def create_df_with_binary_columns(df, colname, n_binary_cols):
     """
     Create a new datframe where x most frequent items in the list turn into binary columns
+
+    df: games Dataframe
+    colname: name of the column to be coded
+    n_binary_cols: top n columns to be generated into binary columns 
     """
+
+    assert isinstance(df, pd.DataFrame)
+    assert isinstance(colname, str) and colname in df.columns
+    assert isinstance(n_binary_cols, int) and n_binary_cols >=1
+
+
     new_df = df.copy()
     cnt = list(itertools.chain.from_iterable(df[colname]))
     cnt = Counter(cnt)
@@ -41,7 +65,16 @@ def create_df_with_binary_columns(df, colname, n_binary_cols):
 def clean_string_format_columns(df, colnames):
     """
     Clean up string-formated columns by removing "
+
+    df: games Dataframe
+    colnames: list of columns
+
     """
+
+    assert isinstance(df, pd.DataFrame)
+    assert isinstance(colnames, list) and all(isinstance(i, str) and i in df.columns for i in colnames)
+
+
     for colname in colnames:
         df[colname] = df[colname].apply(lambda x: x[1:-1] if isinstance(x, str) else "")
     return(df)
