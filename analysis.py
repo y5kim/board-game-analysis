@@ -137,82 +137,6 @@ def plot_ratings_over_years(df, lb, ub, year_threshold=None):
     ax2.spines['top'].set_visible(False)
     plt.show()
 
-def compare_top_ten_items(df, colname, color_font, stop_words, year_threshold=2007):
-    """
-    Plot 10 items that appear most frequently before and after year_threshold side by side
-    Return split dataframes, item counter and cmmon items occurring before and after year_threshold
-    
-    df: dataframe
-    colname: name of column to be compared
-    color_font: flag of whether to highlight items not shown in common items before and after year_threshold
-    stop_words: list of words to be ignored
-    year_threshold: yearpublished threshold
-    """
-    assert isinstance(df, pd.DataFrame)
-    assert isinstance(colname, str) and colname in df.columns
-    assert isinstance(color_font, bool)
-    assert isinstance(stop_words, list) and all(isinstance(x, str) for x in stop_words)
-    assert isinstance(year_threshold, int) and year_threshold > 0
-    
-    # Split up dataframes into before and after year_threshold
-    df1 = df.loc[df["yearpublished"] < year_threshold]
-    df2 = df.loc[df["yearpublished"] >= year_threshold]
-    
-    # Count the occurrences of items 
-    item_cnts1 = Counter(itertools.chain.from_iterable([y.strip("'").strip('"') for y in items.split(', ') 
-                                                if len(y)>0 and y not in stop_words] for items in df1[colname]))
-    item_cnts2 = Counter(itertools.chain.from_iterable([y.strip("'").strip('"') for y in items.split(', ') 
-                                                if len(y)>0 and y not in stop_words] for items in df2[colname]))
-    # Identify top 10 items by occurrences
-    commons1 = item_cnts1.most_common(10)
-    keys1 = [x[0].replace(" / ", "/") for x in commons1][::-1]
-    vals1 = [100*x[1]/df1.shape[0] for x in commons1][::-1]
-
-    commons2 = item_cnts2.most_common(10)
-    keys2 = [x[0].replace(" / ", "/") for x in commons2][::-1]
-    vals2 = [100*x[1]/df2.shape[0] for x in commons2][::-1]
-    inters = [x for x in keys1 if x in keys2]
-    val_lim = max(max(vals1), max(vals2))+4
-
-    # Plot the barplots before & after yearthreshold side by side
-    fig, (ax1, ax2) = plt.subplots(1,2, figsize=(16,4.5))
-
-    ax1.barh(keys1, vals1, color="royalblue")
-    ax1.set_xlim((0,val_lim))
-    ax1.set_xlabel("Share (%)", fontsize=18, weight="bold")
-    ax1.yaxis.set_tick_params(labelsize=18)
-    ax1.set_yticklabels(keys1, weight="bold")
-    ax1.set_title("Before {}".format(year_threshold), fontsize=25, weight="bold", pad=20)
-    for i, v in enumerate(vals1):
-        ax1.text(v + 0.5, i-0.1, str(round(v,1)), color='royalblue', fontweight='bold', fontsize=15)
-    ax1.set_xticks([])
-
-    ax2.barh(keys2, vals2, color="salmon")
-    ax2.set_xlim((0,val_lim))
-    ax2.set_xlabel("Share (%)", fontsize=18, weight="bold")
-    ax2.yaxis.set_tick_params(labelsize=18)
-    ax2.set_title("After {}".format(year_threshold), fontsize=25, weight="bold", pad=20)
-    ax2.set_xticks([])
-    ax2.set_yticklabels(keys2, weight="bold")
-    ax2.yaxis.tick_right()
-    ax2.invert_xaxis()
-    for i, v in enumerate(vals2):
-        ax2.text((v + 3), i-0.1, str(round(v,1)), color='salmon', fontweight='bold', fontsize=15)
-    
-    # If color_font, highlight the items not commonly shown between the two dataframes
-    if color_font:
-        colors1 = ["royalblue" if x.get_text() not in inters else "black" for x in ax1.get_yticklabels()]
-        [t.set_color(i) for (i,t) in
-         zip(colors1, 
-             ax1.get_yticklabels())]
-
-        colors2 = ["salmon" if x.get_text() not in inters else "black" for x in ax2.get_yticklabels()]
-        [t.set_color(i) for (i,t) in
-         zip(colors2, 
-             ax2.get_yticklabels())]
-    plt.tight_layout()
-    return(df1, df2, item_cnts1, item_cnts2, inters)
-
 def generate_word_cloud(ds, max_words=200, width=500, height=500, background_color='white', title=""):
     """
     Generate word clouds given a pandas series
@@ -262,6 +186,83 @@ def generate_word_cloud(ds, max_words=200, width=500, height=500, background_col
     plt.axis('off')   
     plt.title(title, fontsize=25, fontweight="bold", pad=20)
     plt.show()
+
+def compare_top_ten_items(df, colname, color_font, stop_words, year_threshold=2007):
+
+    """
+    Plot 10 items that appear most frequently before and after year_threshold side by side
+    Return split dataframes, item counter and cmmon items occurring before and after year_threshold
+    
+    df: dataframe
+    colname: name of column to be compared
+    color_font: flag of whether to highlight items not shown in common items before and after year_threshold
+    stop_words: list of words to be ignored
+    year_threshold: yearpublished threshold
+    """
+    assert isinstance(df, pd.DataFrame)
+    assert isinstance(colname, str) and colname in df.columns
+    assert isinstance(color_font, bool)
+    assert isinstance(stop_words, list) and all(isinstance(x, str) for x in stop_words)
+    assert isinstance(year_threshold, int) and year_threshold > 0
+    
+    # Split up dataframes into before and after year_threshold
+    df1 = df.loc[df["yearpublished"] < year_threshold]
+    df2 = df.loc[df["yearpublished"] >= year_threshold]
+    
+    # Count the occurrences of items 
+    item_cnts1 = Counter(itertools.chain.from_iterable([y.strip("'").strip('"') for y in items.split(', ') 
+                                                if len(y)>0 and y not in stop_words] for items in df1[colname]))
+    item_cnts2 = Counter(itertools.chain.from_iterable([y.strip("'").strip('"') for y in items.split(', ') 
+                                                if len(y)>0 and y not in stop_words] for items in df2[colname]))
+    # Identify top 10 items by occurrences
+    commons1 = item_cnts1.most_common(10)
+    keys1 = [x[0].replace(" / ", "/") for x in commons1][::-1]
+    vals1 = [100*x[1]/df1.shape[0] for x in commons1][::-1]
+
+    commons2 = item_cnts2.most_common(10)
+    keys2 = [x[0].replace(" / ", "/") for x in commons2][::-1]
+    vals2 = [100*x[1]/df2.shape[0] for x in commons2][::-1]
+    inters = [x for x in keys1 if x in keys2]
+    val_lim = max(max(vals1), max(vals2))+5
+
+    # Plot the barplots before & after yearthreshold side by side
+    fig, (ax1, ax2) = plt.subplots(1,2, figsize=(16,4.5))
+
+    ax1.barh(keys1, vals1, color="royalblue")
+    ax1.set_xlim((0,val_lim))
+    ax1.set_xlabel("Share (%)", fontsize=18, weight="bold")
+    ax1.yaxis.set_tick_params(labelsize=18)
+    ax1.set_yticklabels(keys1, weight="bold")
+    ax1.set_title("Before {}".format(year_threshold), fontsize=25, weight="bold", pad=20)
+    for i, v in enumerate(vals1):
+        ax1.text(v + 0.5, i-0.1, str(round(v,1)), color='royalblue', fontweight='bold', fontsize=15)
+    ax1.set_xticks([])
+
+    ax2.barh(keys2, vals2, color="salmon")
+    ax2.set_xlim((0,val_lim))
+    ax2.set_xlabel("Share (%)", fontsize=18, weight="bold")
+    ax2.yaxis.set_tick_params(labelsize=18)
+    ax2.set_title("After {}".format(year_threshold), fontsize=25, weight="bold", pad=20)
+    ax2.set_xticks([])
+    ax2.set_yticklabels(keys2, weight="bold")
+    ax2.yaxis.tick_right()
+    ax2.invert_xaxis()
+    for i, v in enumerate(vals2):
+        ax2.text((v + 3), i-0.1, str(round(v,1)), color='salmon', fontweight='bold', fontsize=15)
+    
+    # If color_font, highlight the items not commonly shown between the two dataframes
+    if color_font:
+        colors1 = ["royalblue" if x.get_text() not in inters else "black" for x in ax1.get_yticklabels()]
+        [t.set_color(i) for (i,t) in
+         zip(colors1, 
+             ax1.get_yticklabels())]
+
+        colors2 = ["salmon" if x.get_text() not in inters else "black" for x in ax2.get_yticklabels()]
+        [t.set_color(i) for (i,t) in
+         zip(colors2, 
+             ax2.get_yticklabels())]
+    plt.tight_layout()
+    return(df1, df2, item_cnts1, item_cnts2, inters)
 
 def plot_changed_frequencies(common_items, item_cnts1, item_cnts2, population_size1, population_size2, year_threshold):
     """
