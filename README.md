@@ -7,7 +7,7 @@ WI2021 ECE143 Project
 - "environment.yml" records the modules and their versions used for successfully running 
 
 ## View Data Analysis
-- Open Main.ipynb to view/generate all presented data anlysis figures and results
+- Open Main.ipynb to view/generate all presented data analysis figures and results
 
 ## Launch GUI
 - Use the following command: `python GUI.py`
