@@ -1,4 +1,4 @@
-# board-game-analysis
+# Board Game Analysis and Recommendation System
 WI2021 ECE143 Project
 
 ## Requirements
