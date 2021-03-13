@@ -4,13 +4,16 @@ WI2021 ECE143 Project
 ## Requirements
 - Data files should be downloaded from https://www.kaggle.com/jvanelteren/boardgamegeek-reviews
 	- place both bgg-15m-reviews.csv and games_detailed_info.csv in the Data/ directory
-- "environment.yml" records the modules and their versions used for successfully running 
+- "environment.yml" records the modules and their versions used for successfully running
 
 ## View Data Analysis
 - Open Main.ipynb to view/generate all presented data analysis figures and results
 
 ## Launch GUI
 - Use the following command: `python GUI.py`
+
+## Gui Demo
+- https://drive.google.com/file/d/1eyYpNlgix89k1wCbbHunqw-vhSToGns_/view?usp=sharing
 
 ## File Descriptions
 1. analysis.py: contains functions for generating data analysis plots
