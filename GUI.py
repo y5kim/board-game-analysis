@@ -24,7 +24,6 @@ import preprocessing as pre
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.metrics import pairwise_distances
-from word_cloud import get_stop_words
 
 import recommendation_utils as recommender
 import filter as ft
