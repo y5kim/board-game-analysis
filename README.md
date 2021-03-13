@@ -1,12 +1,12 @@
 # board-game-analysis
 WI2021 ECE143 Project
 
-## Requirements: 
+## Requirements
 - Data files should be downloaded from https://www.kaggle.com/jvanelteren/boardgamegeek-reviews
 	- place both bgg-15m-reviews.csv and games_detailed_info.csv in the Data/ directory
 - "environment.yml" records the modules and their versions used for successfully running 
 
-## View Data Analysis:
+## View Data Analysis
 - Open Main.ipynb to view/generate all presented data anlysis figures and results
 
 ## Launch GUI
