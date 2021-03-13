@@ -1,62 +1,27 @@
-import numpy as np
-import pandas as pd
 import itertools
 from collections import Counter
 import ast
+from string import punctuation
+
+import numpy as np
+import pandas as pd
 import nltk
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.metrics import pairwise_distances
-from string import punctuation
 
+from preprocessing import *
 
-def get_reversed_encodings(encodings):
-    '''returns dictionary with inverted key:value pairs'''
-    assert isinstance(encodings, dict)
-    
-    return {value:key for key, value in encodings.items()}
-
-def get_encoded_vec(items, encodings):
-    '''returns a multi-hot vector encoding corresponding to tokens in "items"'''
-    assert isinstance(items, (list, tuple))
-    assert isinstance(encodings, dict)
-
-    rev_encodings = get_reversed_encodings(encodings)
-    encoded_vec = [0]*len(encodings.keys())
-    for i in items:
-        try:
-            encoded_vec[rev_encodings[i]] = 1
-        except:
-            pass
-        
-    return encoded_vec
-
-def add_encoded_column(df, col, threshold=None, filt_items=None):
-    '''
-    Adds a multi-hot encoded version of a multi-category column 'col' to 'df'
-    and returns the corresponding encoding dict
-    '''
-    assert isinstance(df, pd.DataFrame)
-    assert col in list(df)
-
-    filt_items = [] if filt_items is None else filt_items
-    if threshold:
-        cnt = Counter(itertools.chain.from_iterable(df[col]))
-        item_set = {x[0] for x in cnt.most_common() if x[1] >= threshold and x[0] not in filt_items}
-    else:
-        item_set = {i for row in df[col] for i in row}
-        
-    item_encodings = dict(enumerate(sorted(item_set)))
-    df[f'{col}_encoded'] = df[col].apply(get_encoded_vec, args=(item_encodings,))
-
-    return item_encodings
 
 def add_item_counts_column(df, col):
     '''
     Adds a counter column to dataframe 'df' for a given list column 'col'
+
+    df: datframe
+    col: nmae of column to be added
     '''
     assert isinstance(df, pd.DataFrame)
-    assert col in list(df)
+    assert isinstance(col, str) and col in list(df)
 
     df[f'num_{col}'] = df[col].apply(lambda x: len(ast.literal_eval(x)) if not(pd.isna(x)) else 0)
 
@@ -69,15 +34,14 @@ def get_stop_words():
 def generate_similarity_matrix(df, col, col_type='one_hot'):
     '''
     Returns a matrix of similarity scores of size (n,n) where n is the number of rows in the df
-
-    Args:
-        df: pandas dataframe
-        col: column name in df
-        col_type: one of 'one_hot', 'scalar', 'text'
+    
+    df: pandas dataframe
+    col: column name in df
+    col_type: one of 'one_hot', 'scalar', 'text'
     '''
     assert isinstance(df, pd.DataFrame)
-    assert col in list(df)
-    assert col_type in ['one_hot', 'scalar', 'text']
+    assert isinstance(col, str) and col in list(df)
+    assert isinstance(col_type, str) and col_type in ['one_hot', 'scalar', 'text']
 
     if col_type == 'text':
         # use term frequency–inverse document frequency to encode text
@@ -103,9 +67,13 @@ def get_row_idx(df, value, col='name'):
     '''
     Returns the row index where the value in 'col' column of dataframe 'df' is 'value'
     if the value exists; returns -1 otherwise
+
+    df: dataframe
+    value: value to be searched for in df
+    col: column of df where value will be searched for
     '''
     assert isinstance(df, pd.DataFrame)
-    assert col in list(df)
+    assert isinstance(col, str) and col in list(df)
 
     try:
         idx = int(df.index[df[col] == value][0])
@@ -117,10 +85,14 @@ def get_row_idx(df, value, col='name'):
 def get_idx_values(df, indices, col='name'):
     '''
     Returns a list of values at given 'indices' in the 'col' column of dataframe 'df'
+
+    df: dataframe
+    indices: indices
+    col: column of df where value will be searched for
     '''
     assert isinstance(df, pd.DataFrame)
-    assert col in list(df)
-    indices = [indices] if not isinstance(indices, list) else indices
+    assert isinstance(col, str) and col in list(df)
+    indices = [indices] if isinstance(indices, int) else indices
     assert all(isinstance(i, int) for i in indices)
 
     return list(df.iloc[indices, df.columns.get_loc(col)])
@@ -130,15 +102,16 @@ def get_similarity_matrices(df, similarity_cols, similarity_types):
     '''
     Returns a list of similarity matrices corresponding to the columns specified in 'similarity_cols'
 
-    Args:
-        df: pandas dataframe
-        similarity_cols: list of column names in 'df' for which to generate similarity matrices
-        similarity_types: list of column types (each entry is one of: 'one_hot', 'scalar', 'text');
-                          same size as 'similarity_cols'
+    df: pandas dataframe
+    similarity_cols: list of column names in 'df' for which to generate similarity matrices
+    similarity_types: list of column types (each entry is one of: 'one_hot', 'scalar', 'text');
+                      same size as 'similarity_cols'
     '''
     assert isinstance(df, pd.DataFrame)
     assert isinstance(similarity_cols, (list, tuple))
+    assert all(isinstance(x, str) for x in similarity_cols)
     assert isinstance(similarity_types, (list, tuple))
+    assert all(isinstance(x, str) and x in {'one_hot', 'scalar', 'text'} for x in similarity_types)
     assert len(similarity_cols) == len(similarity_types)
 
     return [generate_similarity_matrix(df, col, col_type) for col, col_type in zip(similarity_cols, similarity_types)]
@@ -158,14 +131,16 @@ def calculate_scores(idx, similarity_matrices, idx_weights=None, similarity_weig
                             each entry specifies the weightage given to the corresponding similarity matrix
     '''
     assert isinstance(idx, (list, tuple))
-    assert all(i >= 0 for i in idx)
+    assert all(isinstance(i, int) and i >= 0 for i in idx)
+    assert idx_weights is None or (isinstance(idx_weights, (list, tuple)) and len(idx_weights) == len(idx))
     assert isinstance(similarity_matrices, (list, tuple))
-    assert similarity_weights is None or len(similarity_matrices) == len(similarity_weights)
-    assert idx_weights is None or len(idx_weights) == len(idx)
+    assert similarity_weights is None or (isinstance(similarity_weights, (list, tuple)) and len(similarity_matrices) == len(similarity_weights))
 
+    # Normalize the similarity weights
     similarity_weights = [1/len(similarity_matrices) for _ in range(len(similarity_matrices))] if similarity_weights is None else similarity_weights
     similarity_weights = np.expand_dims(np.array(similarity_weights), axis=1)
 
+    # Normalize the idx_weights
     idx_weights = [1/len(idx) for _ in idx] if idx_weights is None else idx_weights
     idx_weights = np.expand_dims(np.array(idx_weights), axis=1)
 
@@ -193,8 +168,15 @@ def recommend_games(df, games, similarity_matrices, game_weights=None, similarit
         num_games: number of recommended games to return
         exclude: list of items to exclude from recommendations
     '''
-    assert isinstance(games, (list, tuple))
-    assert isinstance(exclude, (list,tuple)) or exclude is None
+    assert isinstance(df, pd.DataFrame)
+    assert isinstance(games, (list, tuple)) and all(isinstance(x, str) for x in games)
+    assert isinstance(game_weights, (list, tuple)) and all((isinstance(x, (int,float)))for x in game_weights)
+    assert isinstance(similarity_matrices, (list, tuple)) and all(isinstance(x, np.ndarray) for x in similarity_matrices)
+    assert similarity_weights is None or (isinstance(similarity_weights, (list, tuple)) and all(isinstance(x, float) for x in similarity_weights))
+    assert similarity_weights is None or (len(similarity_weights) == len(similarity_matrices))
+    assert exclude is None or (isinstance(exclude, (list,tuple)) and (isinstance(x, str) for x in exclude))
+
+
     game_idx = [get_row_idx(df, game, col='name') for game in games]
 
     if game_weights is not None:
@@ -219,15 +201,22 @@ def recommend_games(df, games, similarity_matrices, game_weights=None, similarit
 def user_game_ratings(df, user):
     '''
     Returns a list of all game ratings for a given 'user'; returns empty list if user is not found
+
+    df: pandas dataframe
+    user: user id to be queried
     '''
     assert isinstance(df, pd.DataFrame)
+    assert isinstance(user, str)
 
     return df[df['user'] == user][['name', 'rating']].values.tolist()
 
 def rating_to_weights(ratings, mean=7.0):
     '''
     Converts rating values to a game-importance weight
+
+    ratings: list of rating values
+    mean: mean value to be subracted from ratings to be normalized
     '''
-    assert isinstance(ratings, (list, tuple))
+    assert isinstance(ratings, (list, tuple)) and all((isinstance(x, int) or isinstance(x, float))for x in ratings)
 
     return [rating - mean for rating in ratings]

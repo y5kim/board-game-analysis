@@ -8,6 +8,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
+## Functions used in analysis
 def keep_columns_with_few_na(df, na_ratio_threshold=0.2):
     """
     Return columns of dataframe whose ratio of NA values below a given threshold
@@ -80,31 +81,58 @@ def clean_string_format_columns(df, colnames):
         df[colname] = df[colname].apply(lambda x: x[1:-1] if isinstance(x, str) else "")
     return(df)
 
+## Functions used in recommender
+def get_reversed_encodings(encodings):
+    """
+    Returns dictionary with inverted key:value pairs
+    
+    encodings: dictionary
+    """
+    assert isinstance(encodings, dict)
+    
+    return {value:key for key, value in encodings.items()}
 
-if __name__ == '__main__':
-    # Read data
-    games = pd.read_csv("Data/games_detailed_info.csv", index_col=0) # review stats
-    # 1. Remove columns with > 20% of NA values 
-    key_columns = keep_columns_with_few_na(games)
-    # 2. Remove redundant/unnecesary columns
-    unnecessary_columns = ["type", "thumbnail", "image", "suggested_num_players", "suggested_playerage", 
-                           "suggested_language_dependence"]
-    key_columns = [x for x in key_columns if x not in unnecessary_columns]
-    # 3. Rename confusing column names
-    games = games.loc[:,key_columns]
-    games.rename(columns={"primary": "name", "usersrated": "numratings", "average": "avgrating",
-                          "boardgamecategory": "category", "boardgamemechanic": "mechanic", 
-                          "boardgamedesigner": "designer", "boardgamepublisher": "publisher", 
-                          "bayesaverage": "bayesavgrating", "Board Game Rank": "rank", 
-                          "stddev": "stdrating", "median": "medianrating",
-                          "owned": "numowned", "trading": "numtrades", "wanting":"numwants", 
-                          "wishing": "numwishes"}, inplace=True)
-    # 4. Parse columns with list values
-    list_colnames = ["category", "mechanic", "designer", "publisher"]
-    games = parse_list_columns(games, list_colnames)
+def get_encoded_vec(items, encodings):
+    """
+    Returns a multi-hot vector encoding corresponding to tokens in "items"
 
-    # 5. Create new dataframes with binary columns of 20 popular items
-    games_category, category_cnt = create_df_with_binary_columns(games, "category", 20)
-    games_mechanic, mechanic_cnt = create_df_with_binary_columns(games, "mechanic", 20)
-    games_designer, designer_cnt = create_df_with_binary_columns(games, "designer", 20)
-    games_publisher, publisher_cnt = create_df_with_binary_columns(games, "publisher", 20)
+    items: list of tuple 
+    encodings: dictionary
+    """
+    assert isinstance(items, (list, tuple))
+    assert isinstance(encodings, dict)
+
+    rev_encodings = get_reversed_encodings(encodings)
+    encoded_vec = [0]*len(encodings.keys())
+    for i in items:
+        try:
+            encoded_vec[rev_encodings[i]] = 1
+        except:
+            pass
+        
+    return encoded_vec
+
+def add_encoded_column(df, col, threshold=0, filt_items=[]):
+    """
+    Adds a multi-hot encoded version of a multi-category column 'col' to 'df'
+    and returns the corresponding encoding dict
+
+    df: dataframe
+    col: name of column to be encoded
+    threshold: threshold on the number of occurrences 
+    filt_items: name of items to be filtered out
+    """
+    assert isinstance(df, pd.DataFrame)
+    assert isinstance(col, str) and col in list(df)
+    assert isinstance(threshold, int)
+    assert isinstance(filt_items, list)
+
+    # Count the number of occurrences for each item 
+    cnt = Counter(itertools.chain.from_iterable(df[col]))
+    item_set = {x[0] for x in cnt.most_common() if x[1] >= threshold and x[0] not in filt_items}
+
+    item_encodings = dict(enumerate(sorted(item_set)))
+    df[f'{col}_encoded'] = df[col].apply(get_encoded_vec, args=(item_encodings,))
+
+    return item_encodings
+

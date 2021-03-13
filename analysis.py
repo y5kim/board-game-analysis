@@ -155,7 +155,7 @@ def generate_word_cloud(ds, max_words=200, width=500, height=500, background_col
     assert isinstance(background_color, str)
     assert isinstance(title, str)
         
-    def get_stop_words():
+    def get_stop_words_wordcloud():
         """
         Helper function to identify words to be exclude from the word cloud
         """
@@ -170,7 +170,7 @@ def generate_word_cloud(ds, max_words=200, width=500, height=500, background_col
         return set(stop_words)
     
     # Clean up words by excluding stop words
-    stop_words = get_stop_words()
+    stop_words = get_stop_words_wordcloud()
     tokenized_ds = ds.dropna().apply(nltk.word_tokenize)
     tokenized_ds = [ (re.sub(r'[^\w\s]','',x)).lower() for ls in tokenized_ds for x in ls ]
     words = [word for word in tokenized_ds if word not in stop_words]
