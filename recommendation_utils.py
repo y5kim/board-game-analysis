@@ -3,10 +3,12 @@ import pandas as pd
 import itertools
 from collections import Counter
 import ast
+import nltk
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.metrics import pairwise_distances
-from word_cloud import get_stop_words
+from string import punctuation
+
 
 def get_reversed_encodings(encodings):
     '''returns dictionary with inverted key:value pairs'''
@@ -57,6 +59,12 @@ def add_item_counts_column(df, col):
     assert col in list(df)
 
     df[f'num_{col}'] = df[col].apply(lambda x: len(ast.literal_eval(x)) if not(pd.isna(x)) else 0)
+
+def get_stop_words():
+    '''Returns a list of words to be ignored when searching for keywords'''
+    stop_words = nltk.corpus.stopwords.words('english')
+    stop_words.extend([c for c in punctuation] + ['quot', 'rsquo', 'mdash', 'ndash','s'])
+    return set(stop_words)
 
 def generate_similarity_matrix(df, col, col_type='one_hot'):
     '''
