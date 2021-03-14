@@ -216,5 +216,6 @@ def rating_to_weights(ratings, mean=7.0):
     mean: mean value to be subracted from ratings to be normalized
     '''
     assert isinstance(ratings, (list, tuple)) and all((isinstance(x, int) or isinstance(x, float))for x in ratings)
+    assert isinstance(mean, (int, float))
 
     return [rating - mean for rating in ratings]
