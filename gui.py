@@ -2,7 +2,6 @@ import os
 from tkinter import *
 from tkinter import ttk
 import webbrowser
-import filter as ft
 import numbers
 
 import pandas as pd
@@ -12,6 +11,7 @@ from PIL import ImageTk, Image
 
 import preprocessing as pre
 import recommendation_utils as recommender
+import filter as ft
 
 
 class Game:
