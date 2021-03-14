@@ -4,8 +4,9 @@ WI2021 ECE143 Project Team1
 ## Requirements
 - Data files should be downloaded from [Kaggle](https://www.kaggle.com/jvanelteren/boardgamegeek-reviews)
 	- place both `bgg-15m-reviews.csv` and `games_detailed_info.csv` in `Data/` directory
-- "environment.yml" records the modules and their versions used for successfully running
+- `environment.yml` records the modules and their versions used for successfully running
 	- Third-party modules: numpy, pandas, nltk, scikit-learn, matplotlib, seaborn, wordcloud, wget, Pillow
+	- Create a conda environemnt by running the following command: `conda env create -f environment.yml`
 
 ## View Data Analysis
 - Open `Main.ipynb` to view/generate all presented data analysis figures and results
