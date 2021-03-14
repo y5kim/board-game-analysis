@@ -1,11 +1,8 @@
 import ast
-import os
 import itertools
 from collections import Counter
 
 import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
 
 
 ## Functions used in analysis

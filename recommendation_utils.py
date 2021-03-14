@@ -1,5 +1,3 @@
-import itertools
-from collections import Counter
 import ast
 from string import punctuation
 
